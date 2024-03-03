@@ -13,17 +13,20 @@ To install SPARTAN you will need the following tools
 - pip
 
 **Step 1**: Clone this repository and change directory to the home directory
+
 bash`
 git clone https://github.com/TheDatumOrg/SPARTAN
 cd SPARTAN
 `
 
 **Step 2**: Install the required dependencies
+
 bash`
 pip install requirements.txt
 `
 
 **Step 3**: Install UCR Archive Data
+
 bash`
 wget http://www.timeseriesclassification.com/aeon-toolkit/Archives/Univariate2018_ts.zip
 unzip Univariate2018_ts.zip
