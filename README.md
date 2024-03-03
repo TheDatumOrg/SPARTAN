@@ -14,33 +14,33 @@ To install SPARTAN you will need the following tools
 
 **Step 1**: Clone this repository and change directory to the home directory
 
-shell`
+```shell
 git clone https://github.com/TheDatumOrg/SPARTAN
 cd SPARTAN
-`
+```
 
 **Step 2**: Install the required dependencies
 
-shell`
+```shell
 pip install requirements.txt
-`
+```
 
 **Step 3**: Install UCR Archive Data
 
-shell`
+```shell
 wget http://www.timeseriesclassification.com/aeon-toolkit/Archives/Univariate2018_ts.zip
 unzip Univariate2018_ts.zip
-`
+```
 
 ## Evaluation
 
 To test SPARTAN classification accuracy on a single dataset:
 
-shell`
+```shell
 python3 train.py --data /path/to/your/data --problem DatasetName --classifier spartan --config ./path/to/model_params/
-`
+```
 
 To test SPARTAN accuracy on all 128 datasets:
-bash`
+```shell
 python3 experimental_evaluation.py --data /path/to/your/data --problem DatasetName --classifier spartan --config ./path/to/model_params/
-`
+```
