@@ -1,9 +1,0 @@
-{
-    "alphabet_size":[8,8,8,4,4,4,4,4,4,2,2,2],
-    "window_size":0,
-    "word_length":32,
-    "binning_method":"equi-depth",
-    "metric":"symbol",
-    "bit_budget":64,
-    "assignment_policy":"budget"
-}

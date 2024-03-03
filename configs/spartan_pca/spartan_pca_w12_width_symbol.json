@@ -1,7 +1,0 @@
-{
-    "alphabet_size":4,
-    "window_size":0,
-    "word_length":12,
-    "binning_method":"equi-width",
-    "metric":"symbol"
-}

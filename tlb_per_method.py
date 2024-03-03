@@ -40,7 +40,7 @@ for i in range(dset_info.shape[0]):
     X_train,y_train,X_test,y_test = create_numpy_dataset(name=dataset,path=data_path)
 
     n_instances,n_channels,n_timepoints = X_train.shape
-    nearest_even_divisor=(n_timepoints // word_length) * word_length 
+    nearest_even_divisor=(n_timepoints // word_len) * word_len
 
     X_train = X_train[:,:,:nearest_even_divisor]
     X_test = X_test[:,:,:nearest_even_divisor]
@@ -75,7 +75,7 @@ for i in range(dset_info.shape[0]):
     # euclidean_dist_mat = euclidean_vectorized(X_all,X_all)
 
     if method == 'spartan':
-        spartan = SpartanPCAClassifier(
+        spartan = SPARTANClassifier(
             alphabet_size=alphabet_size,
             word_length=word_len,
             metric='sax_mindist'
