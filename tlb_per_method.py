@@ -18,10 +18,8 @@ from scipy.spatial import distance
 
 from sax_classifier import SAXDictionaryClassifier
 from sfa_classifier import SFADictionaryClassifier
-from spartan_pca_classifier import SpartanPCAClassifier
+from spartan_classifier import SPARTANClassifier
 from tslearn.piecewise import SymbolicAggregateApproximation
-
-method_kwargs = [json.load(open(config)) for config in method_configs]
 
 tlb_results = pd.DataFrame()
 
@@ -37,7 +35,6 @@ alphabet_size=4
 word_len=8
 window_size=0
 
-word_length = method_kwargs[0]['word_length']
 for i in range(dset_info.shape[0]):
     dataset = dset_info['problem'].iloc[i]
     X_train,y_train,X_test,y_test = create_numpy_dataset(name=dataset,path=data_path)
