@@ -25,7 +25,7 @@ cd SPARTAN
 pip install requirements.txt
 ```
 
-**Step 3**: Install UCR Archive Data
+**Step 3**: Download the UCR Archive Data
 
 ```shell
 wget http://www.timeseriesclassification.com/aeon-toolkit/Archives/Univariate2018_ts.zip
@@ -34,6 +34,7 @@ unzip Univariate2018_ts.zip
 
 ## Evaluation
 
+### 1NN Classification
 To test SPARTAN classification accuracy on a single dataset:
 
 ```shell
@@ -43,4 +44,11 @@ python3 train.py --data /path/to/your/data --problem DatasetName --classifier sp
 To test SPARTAN accuracy on all 128 datasets:
 ```shell
 python3 experimental_evaluation.py --data /path/to/your/data --problem DatasetName --classifier spartan --config ./path/to/model_params/
+```
+
+### Tightness of Lower Bound
+
+To reproduce TLB results:
+```shell
+python3 tlb_per_method.py
 ```
