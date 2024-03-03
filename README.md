@@ -1,4 +1,4 @@
-# SPARTAN: SPARTAN: Data-adaptive Symbolic Representations for Time Series Data Analysis
+# SPARTAN: Data-adaptive Symbolic Representations for Time Series Data Analysis
 
 ---
 
