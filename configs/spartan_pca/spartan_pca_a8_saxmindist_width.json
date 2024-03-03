@@ -1,0 +1,7 @@
+{
+    "alphabet_size":8,
+    "window_size":0,
+    "word_length":8,
+    "binning_method":"equi-width",
+    "metric":"sax_mindist"
+}

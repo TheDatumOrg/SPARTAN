@@ -1,0 +1,6 @@
+{
+    "save_words":true,
+    "n_jobs":-1,
+    "window_size":12,
+    "metric":"mindist"
+}

@@ -1,0 +1,8 @@
+{
+    "save_words":true,
+    "window_size":12,
+    "alphabet_size":4,
+    "word_length":4,
+    "metric":"kl",
+    "remove_repeat_words":true
+}

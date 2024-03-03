@@ -1,0 +1,5 @@
+{
+    "save_words":true,
+    "window_size":12,
+    "metric":"mindist"
+}

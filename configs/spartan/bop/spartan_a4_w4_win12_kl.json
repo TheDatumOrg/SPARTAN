@@ -1,0 +1,8 @@
+{
+    "alphabet_size":4,
+    "window_size":12,
+    "word_length":4,
+    "binning_method":"equi-depth",
+    "remove_repeat_words":true,
+    "metric":"kl"
+}

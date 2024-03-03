@@ -1,0 +1,8 @@
+{
+    "alphabet_size":[16,16,16,16,16,16,16,16, 8,8,8,8,8,8,8,8, 4,4,4,4,4,4,4,4],
+    "window_size":0,
+    "word_length":24,
+    "binning_method":"equi-depth",
+    "metric":"symbol",
+    "assignment_policy":"direct"
+}

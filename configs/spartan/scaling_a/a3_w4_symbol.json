@@ -1,0 +1,7 @@
+{
+    "alphabet_size":3,
+    "window_size":0,
+    "word_length":4,
+    "binning_method":"equi-depth",
+    "metric":"symbol"
+}
