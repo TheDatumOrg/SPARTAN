@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--data", required=False, default="../TSC-Benchmark/tscbench/data/Univariate_ts/")
+parser.add_argument("-d", "--data", required=False, default="../data/Univariate_ts/")
 parser.add_argument("-p", "--problem", required=False, default="ECG200")  # see data_loader.regression_datasets
 
 arguments = parser.parse_args()
