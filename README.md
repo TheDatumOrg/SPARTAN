@@ -9,7 +9,7 @@ robustness of SPARTAN, we first perform an extensive evaluation of 7 state-of-th
 
 Here is the pipeline of SPARTAN (**S**ymbolic **P**C**A** **R**epresentation
 for **T**ime Series **AN**alytics):
-![Overview of the SPARTAN pipeline.](figure/spartan_pipeline.jpeg)
+![Overview of the SPARTAN pipeline.](figure/spartan_pipeline.jpg)
 
 ## Getting Started
 
