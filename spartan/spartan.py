@@ -196,9 +196,9 @@ class SPARTAN:
             
             letter_alphabet_size = self.alphabet_size[letter]
             breakpoint_i = np.zeros(letter_alphabet_size)
-            mindist_breakpoint_i = np.zeros(letter_alphabet_size)
+            mindist_breakpoint_i = np.zeros(letter_alphabet_size+1)
 
-            mindist_breakpoint_i[0] = column_min
+            mindist_breakpoint_i[0] = sys.float_info.min
 
             #use equi-depth binning
             if self.binning_method == "equi-depth":
@@ -216,6 +216,7 @@ class SPARTAN:
                 for bp in range(letter_alphabet_size - 1):
                     breakpoint_i[bp] = (bp + 1) * target_bin_width + column[0]
             breakpoint_i[letter_alphabet_size - 1] = sys.float_info.max
+            mindist_breakpoint_i[letter_alphabet_size] = sys.float_info.max
             breakpoints.append(breakpoint_i)
             mindist_breakpoints.append(mindist_breakpoint_i)
             
