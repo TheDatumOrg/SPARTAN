@@ -18,7 +18,7 @@ from sklearn.preprocessing import LabelEncoder
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-d", "--data", required=False, default="../Univariate_ts/")
+parser.add_argument("-d", "--data", required=False, default="../TSC-Benchmark/tscbench/data/Univariate_ts/")
 parser.add_argument("-p", "--problem", required=False, default="ECG200")  # see data_loader.regression_datasets
 
 arguments = parser.parse_args()
@@ -83,7 +83,7 @@ tlb_results = pd.DataFrame()
 for n, word_len in enumerate(word_sizes):
     for m,alphabet_size in enumerate(alphabet_sizes):
         spartan = SPARTANClassifier(
-            alphabet_size=alphabet_size,
+            alphabet_size=int(alphabet_size),
             word_length=word_len,
             metric='sax_mindist'
         )

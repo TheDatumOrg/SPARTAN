@@ -134,6 +134,8 @@ class SPARTANClassifier:
             train_X = np.squeeze(self.train_words,axis=1)
 
             dist_mat = euclidean_vectorized(pred_X,train_X)
+
+        self.dist_mat = dist_mat
         ind = np.argmin(dist_mat,axis=1)
         ind = ind.T
         pred = self._y[ind]
