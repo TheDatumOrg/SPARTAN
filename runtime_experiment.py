@@ -1,4 +1,3 @@
-from curses import window
 from tools import univariate
 
 import argparse
