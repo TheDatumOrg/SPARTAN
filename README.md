@@ -53,7 +53,12 @@ python3 experimental_evaluation.py --data /path/to/your/data --problem DatasetNa
 
 ### Tightness of Lower Bound
 
-To reproduce TLB results:
+To reproduce TLB results w/ varying parameters:
 ```shell
-python3 tlb_per_method.py
+python3 tlb_varying_parameters.py --problem DatasetName
+```
+
+To reproduce mean TLB for all 128 datasets:
+```shell
+python3 tlb_per_method.py 
 ```
