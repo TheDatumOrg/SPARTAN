@@ -1,7 +1,0 @@
-{
-    "save_words":true,
-    "window_size":0,
-    "alphabet_size":4,
-    "word_length":9,
-    "metric":"matching"
-}

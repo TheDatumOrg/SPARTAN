@@ -103,7 +103,7 @@ if config is not None:
     print("[{}] Model Args: {}".format(module,model_kwargs))
 
 
-if classifier_name in ['sax', 'sax_vseg']:
+if classifier_name == 'sax':
     if config is None:
         clf = SAXDictionaryClassifier(save_words = True)
     else:
@@ -137,8 +137,8 @@ pred_end = time.time()
 
 comp_end = time.time()
 
-print(f'Fit time: {fit_end - fit_start}')
-print(f'Pred time: {pred_end - pred_start}')
+print(f'Fit time: {(fit_end - fit_start):.4f}s')
+print(f'Pred time: {(pred_end - pred_start):.4f}s')
 # model_eval = (model_pred == y_test_transformed).sum() / len(model_pred)
 # print(model_eval)
 
