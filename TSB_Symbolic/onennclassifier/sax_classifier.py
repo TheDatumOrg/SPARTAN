@@ -1,6 +1,5 @@
 from ..symbolic.sax.sax import SAX
-from ..util.distance import mindist,matching_distance,hist_euclidean_dist,pairwise_distance,pairwise_histogram_distance
-from ..util.distance_vectorized import hamming_vectorized,symbol_vectorized,sax_mindist,euclidean_vectorized,boss_vectorized,cosine_similarity_vectorized,kl_divergence
+from ..util.distance_vectorized import symbol_vectorized,mindist,euclidean_vectorized
 
 import sys
 import numpy as np
@@ -86,7 +85,7 @@ class SAXDictionaryClassifier():
             breakpoints = np.array(breakpoints)
             breakpoints = np.tile(breakpoints,(self.word_length,1))
 
-            dist_mat = sax_mindist(pred_X,train_X,breakpoints,self.ts_len)
+            dist_mat = mindist(pred_X,train_X,breakpoints,self.ts_len)
 
         else:
             raise Exception(f"Sorry, the {self.metric} is not currently supported.")

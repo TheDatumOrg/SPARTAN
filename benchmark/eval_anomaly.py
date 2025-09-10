@@ -7,6 +7,7 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 from .anomaly_detection.knn import run_KNN
+from .anomaly_detection.util import Window
 from .anomaly_detection.evaluation.metrics import get_metrics
 from .util.tools import create_directory
 
@@ -19,8 +20,8 @@ def parse_arguments():
     parser.add_argument("-d", "--data", required=False, default="../Univariate_ts/")
     parser.add_argument("-p", "--problem", required=False, default="NAB")  # see data_loader.regression_datasets
     parser.add_argument("-c", "--classifier", required=False, default="sax")  # see regressor_tools.all_models
-    parser.add_argument("-g", '--config',required=False,default='./configs/sax/sax_boss.json')
-    parser.add_argument("-i", "--itr", required=False, default=13)
+    parser.add_argument("-g", '--config',required=False)
+    parser.add_argument("-i", "--itr", required=False, default=1)
     parser.add_argument("-n", "--norm", required=False, default="zscore")  # none, standard, minmax
     parser.add_argument("-s","--save_model",required=False, default=None)
     parser.add_argument("-r","--skip_repeat",required=False,default=True)
@@ -55,10 +56,14 @@ if __name__ == "__main__":
     print("[{}] Data Dir: {}".format(module,data_path))
     print("[{}] Problem: {}".format(module,problem))
     print("[{}] Classifier: {}".format(module,classifier_name))
+    print("[{}] Config: {}".format(module,config))
+
     #Load Model Config
-    if config is not None:
+    if config not in [None, 'None', 'none']:
         model_kwargs = json.load(open(config))
         print("[{}] Model Args: {}".format(module,model_kwargs))
+    else:
+        model_kwargs = {}
 
     output_directory = "output/anomaly/result/"
     output_directory = output_directory + classifier_name + '/' + data_path.split("/")[-1] + "-" + problem.split(".out")[0] + '/itr_' + str(itr) + '/'
@@ -85,6 +90,9 @@ if __name__ == "__main__":
             clf = SFADictionaryClassifier(**model_kwargs)
     elif classifier_name == 'spartan':
         clf = SPARTANClassifier(**model_kwargs)
+    elif classifier_name == 'euclidean':
+        pass
+    
 
     comp_start = time.time()
 
@@ -103,15 +111,23 @@ if __name__ == "__main__":
 
     X_train_transform = X_test_transform = data.copy()
     y_train_transformed = np.zeros(1)
-    clf.fit(X_train_transform,y_train_transformed)
-    _ = clf.predict(X_test_transform)
 
-    sliding_symbol = clf.predict_words_bps
+    # running with symbolic methods
+    if classifier_name != 'euclidean':
+        clf.fit(X_train_transform,y_train_transformed)
+        _ = clf.predict(X_test_transform)
 
-    print(f"[{module}] Symbolic Rep shape: {sliding_symbol.shape}")
+        sliding_symbol = clf.predict_words_bps
 
-    # make prediction
-    output = run_KNN(data.reshape(-1,1), sliding_symbol[0], n_neighbors=50, method='largest', slidingWindow=model_kwargs["window_size"], metric='l1')
+        print(f"[{module}] Symbolic Rep shape: {sliding_symbol.shape}")
+
+        # make prediction
+        output = run_KNN(data.reshape(-1,1), sliding_symbol[0], n_neighbors=50, method='largest', slidingWindow=model_kwargs["window_size"], metric='l1')
+    
+    else:
+        windows = Window(window = window_size).convert(data).to_numpy()
+        print(f"[{module}] Windows shape: ", windows.shape, "data shape: ", data.shape, flush=True)
+        output = run_KNN(data.reshape(-1,1), windows, n_neighbors=50, method='largest', slidingWindow=window_size)
 
     # Evaluation
     comp_end = time.time()

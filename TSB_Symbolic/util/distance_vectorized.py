@@ -95,7 +95,7 @@ def l1_mindist(X,Y,breakpoints):
 
     return dist
 
-def sax_mindist(X,Y,breakpoints, ts_len=None):
+def mindist(X,Y,breakpoints, ts_len=None):
     
     # bug fix: \sqrt{n/w} scaling
     n_instances,word_length = X.shape

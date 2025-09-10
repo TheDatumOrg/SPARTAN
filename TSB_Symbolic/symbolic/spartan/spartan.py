@@ -103,7 +103,7 @@ class SPARTAN:
         # --- Discretization ---
 
         # alphabet allocation
-        if self.assignment_policy == 'direct':
+        if self.assignment_policy in ['direct', 'woDAA']:
             self.alphabet_size = self.alphabet_size
             self.avg_alphabet_size = int(np.mean(self.alphabet_size))
             assigned_evc = self.evcr[0:self.word_length]
@@ -141,6 +141,51 @@ class SPARTAN:
             end_time = time.time()
             # print(f"[Training] DAA time: {(end_time-start_time)/n_instances:.2e}")
         
+        elif self.assignment_policy == 'naiveDAA':
+
+            start_time = time.time()
+            if isinstance(self.alphabet_size, list):
+                self.alphabet_size = int(np.mean(self.alphabet_size))
+
+            self.avg_alphabet_size = self.alphabet_size
+            if self.bit_budget != int(np.log2(self.alphabet_size)*self.word_length):
+                total_bit = self.bit_budget = int(np.log2(self.alphabet_size)*self.word_length)
+            else:
+                total_bit = self.bit_budget
+
+            assigned_evc = self.evcr[0:self.word_length]
+            # print("before norm: ", assigned_evc)
+
+            assigned_evc = assigned_evc / np.sum(assigned_evc)
+
+
+            # print("after norm: ", assigned_evc)
+
+            avg_allocation = self.bit_budget // self.word_length
+
+            bit_arr = []
+            for ev_value  in assigned_evc:
+
+                bit_per_dim = round(ev_value*total_bit)
+                # if bit_per_dim > 0:
+                bit_arr.append(bit_per_dim)
+
+            if np.sum(bit_arr) < total_bit:
+                
+                non_zero_indices = np.nonzero(bit_arr)[0]
+                last_non_zero_index = non_zero_indices[-1] if non_zero_indices.size > 0 else 0
+                if last_non_zero_index == len(bit_arr) - 1:
+                    bit_arr[-1] += total_bit - np.sum(bit_arr)
+                else:
+                    bit_arr[last_non_zero_index+1] += total_bit - np.sum(bit_arr)
+            
+            self.alphabet_size = [int(2**bit_arr[i]) for i in range(len(bit_arr))]
+            
+            print("naive DAA allocation (bit): ", bit_arr)
+            
+            end_time = time.time()
+            # print(f"[Training] DAA time: {(end_time-start_time)/n_instances:.2e}")
+
         # binning
         if num_windows_per_inst == 1:
 
@@ -194,10 +239,7 @@ class SPARTAN:
             flat_split = np.reshape(split,(-1,split.shape[2]))
             split_transorm = self.pca.transform(flat_split)
 
-            breakpoints = self.binning(split_transorm)
-
-            self.breakpoints = breakpoints
-            flat_words = self.generate_words(split_transorm,breakpoints)
+            flat_words = self.generate_words(split_transorm,self.breakpoints)
 
             words = np.reshape(flat_words,(n_instances,num_windows_per_inst,self.word_length)) 
             
@@ -212,146 +254,6 @@ class SPARTAN:
         self.fit(X, y=None)
         return self.transform(X)
         
-
-    def fit_transform2(self,X,y=None):
-        
-        self.pca = PCA(n_components=self.word_length, svd_solver=self.pca_solver)
-        self._X = X
-        self._y = y
-
-
-        # do random (down)sampling if required
-        if self.downsample < 1.0:
-            sampling_num = min(max(int(np.ceil(len(X)*self.downsample)), 10), 1000)
-            random_indices = np.random.choice(X.shape[0], sampling_num, replace=False)
-            self._X_downsampled = self._X[random_indices]
-
-        # check data statistics
-        n_instances, series_length = X.shape
-        if self.window_size == 0:
-            window_size = series_length
-            self.window_size = window_size
-        elif self.window_size < 1:
-            window_size = int(series_length *  self.window_size)
-            self.window_size = window_size
-        
-        self.window_size = min(self.window_size, series_length)
-        self.window_size = max(self.word_length, self.window_size)
-        window_size = self.window_size
-        
-        # split data (for BOP)
-        num_windows_per_inst = series_length - window_size + 1
-        split = X[:,np.arange(window_size)[None,:] + np.arange(num_windows_per_inst)[:,None]]
-
-        start_time = time.time()
-
-        # --- Numeric Approximation ---
-        if num_windows_per_inst == 1:
-            if self.downsample < 1.0:
-                
-                print("original shape: ", X.shape)
-                print("downsampled shape: ", self._X_downsampled.shape)
-                
-                self.pca.fit(self._X_downsampled)
-                X_transform = self.pca.transform(X)
-            else:
-                X_transform = self.pca.fit_transform(X)
-        elif self.window_size != 0 and self.window_size != series_length:
-            
-            flat_split = np.reshape(split,(-1,split.shape[2]))
-            if self.downsample < 1.0:
-                print("bop original shape: ", flat_split.shape)
-                print("bop downsampled shape: ", flat_split[random_indices].shape)
-                self.pca.fit(flat_split[random_indices])
-                split_transorm = self.pca.transform(flat_split)
-            else:
-                split_transorm = self.pca.fit_transform(flat_split)
-
-        self.evcr = self.pca.explained_variance_ratio_
-
-        end_time = time.time()
-
-        # print(f"[Training] PCA time: {(end_time-start_time)/n_instances:.2e}")
-
-        # --- Discretization ---
-
-        # alphabet allocation
-        if self.assignment_policy == 'direct':
-            self.alphabet_size = self.alphabet_size
-            self.avg_alphabet_size = int(np.mean(self.alphabet_size))
-            assigned_evc = self.evcr[0:self.word_length]
-
-            assigned_evc = assigned_evc / np.sum(assigned_evc)
-
-            # print("after norm: ", assigned_evc)
-        elif self.assignment_policy in ['DAA', 'dp']:
-
-            start_time = time.time()
-            if isinstance(self.alphabet_size, list):
-                self.alphabet_size = int(np.mean(self.alphabet_size))
-
-            self.avg_alphabet_size = self.alphabet_size
-            if self.bit_budget != int(np.log2(self.alphabet_size)*self.word_length):
-                total_bit = self.bit_budget = int(np.log2(self.alphabet_size)*self.word_length)
-            else:
-                total_bit = self.bit_budget
-
-            # truncate and re-norm
-            assigned_evc = self.evcr[0:self.word_length]
-            # print("before norm: ", assigned_evc)
-            assigned_evc = assigned_evc / np.sum(assigned_evc)
-            # print("after norm: ", assigned_evc)
-
-            avg_allocation = self.bit_budget // self.word_length
-
-
-            DP_reward, bit_arr = self.dynamic_alphabet_allocation(total_bit=total_bit, 
-                                                                  EV=assigned_evc, 
-                                                                  lamda=self.lamda)
-            self.alphabet_size = [int(2**bit_arr[i]) for i in range(len(bit_arr))]
-            # print("dp result: ", bit_arr)
-
-            end_time = time.time()
-            # print(f"[Training] DAA time: {(end_time-start_time)/n_instances:.2e}")
-        
-        # binning
-        if num_windows_per_inst == 1:
-
-            kept_components = X_transform[:,0:self.word_length]
-            self.pca_repr = kept_components
-            start_time = time.time()
-            self.breakpoints = self.binning(kept_components)
-
-            # print("bkpts: ", self.breakpoints)
-            end_time = time.time()
-            # print(f"[Training] Binning time: {(end_time-start_time)/n_instances:.2e}")
-
-            start_time = time.time()
-            words = self.generate_words(kept_components,self.breakpoints)
-            end_time = time.time()
-            # print(f"[Training] Digitize time: {(end_time-start_time)/n_instances:.2e}")
-            
-            if self.build_histogram:
-                self.train_histogram = self.bag_to_hist_DAA(self.create_bags(words[:,None,:]))
-            else:
-                self.train_histogram = np.zeros((1,1))
-             
-        else:
-            breakpoints = self.binning(split_transorm)
-
-            self.pca_repr = split_transorm[:,0:self.word_length]
-            self.breakpoints = breakpoints
-            flat_words = self.generate_words(split_transorm,breakpoints)
-
-            words = np.reshape(flat_words,(n_instances,num_windows_per_inst,self.word_length))
-            # print("sliding win: ", words.shape)
-            if self.build_histogram:
-                self.train_histogram = self.bag_to_hist_DAA(self.create_bags(words)) 
-            else:
-                self.train_histogram = np.zeros((1,1))
-        
-        # print(words)
-        return words
 
     def generate_words(self,pca,breakpoints):
         words = np.zeros((pca.shape[0],self.word_length))

@@ -1,7 +1,8 @@
-from TSB_Symbolic.symbolic.spartan import SPARTAN
-from ..util.distance import pairwise_distance,pairwise_histogram_distance
-from ..util.distance_vectorized import hamming_vectorized,symbol_vectorized,symbol_weighted,hamming_weighted,mindist_vectorized,sax_mindist,mindist_minmax,spartan_pca_mindist,euclidean_vectorized,boss_vectorized,cosine_similarity_vectorized,kl_divergence
 import numpy as np
+from TSB_Symbolic.symbolic.spartan import SPARTAN
+
+from ..util.distance_vectorized import symbol_vectorized, spartan_pca_mindist,euclidean_vectorized
+
 
 class SPARTANClassifier:
     def __init__(self,

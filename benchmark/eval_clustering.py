@@ -6,11 +6,10 @@ import numpy as np
 import pandas as pd
 
 from .util.dataset import create_numpy_dataset
-from .util.normalization import create_normalizer
-from .util.tools import create_directory,compute_classification_metrics
-from .util.tools import eval_cluster, compute_clustering_metrics
+from .util.tools import create_directory
+from .util.tools import compute_clustering_metrics
 
-from .util.distance_vectorized import hamming_vectorized,symbol_vectorized
+from .util.distance_vectorized import symbol_vectorized
 
 from sklearn.preprocessing import LabelEncoder
 
@@ -33,7 +32,7 @@ def parse_arguments():
     parser.add_argument("-p", "--problem", required=False, default="ArrowHead")  # see data_loader.regression_datasets
     parser.add_argument("-c", "--classifier", required=False, default="sax")  # see regressor_tools.all_models
     parser.add_argument("-g", '--config',required=False,default='')
-    parser.add_argument("-i", "--itr", required=False, default=13)
+    parser.add_argument("-i", "--itr", required=False, default=1)
     parser.add_argument("-n", "--norm", required=False, default="zscore")  # none, standard, minmax
     parser.add_argument("-s","--save_model",required=False, default=None)
     parser.add_argument("-r","--skip_repeat",required=False,default=True)
@@ -72,7 +71,7 @@ if __name__ == "__main__":
     data_split = arguments.data_split
     repr_type = arguments.repr_type
 
-    assert clust_model in ['kmedoids', 'hierarchical', 'symb_kmeans']
+    assert clust_model in ['kmedoids', 'hierarchical', 'symb_kmeans', 'kmeans']
 
     # create output directory
     output_directory = "output/clustering/"
@@ -123,6 +122,7 @@ if __name__ == "__main__":
     else:
         model_kwargs = {}
 
+    classifier_name = classifier_name.lower()
     if classifier_name == 'sax':
         if config is None:
             clf = SAXDictionaryClassifier(save_words = True)
@@ -135,6 +135,9 @@ if __name__ == "__main__":
             clf = SFADictionaryClassifier(**model_kwargs)
     elif classifier_name == 'spartan':
         clf = SPARTANClassifier(**model_kwargs)
+    
+    elif classifier_name == 'euclidean':
+        clf = None
 
 
     X_train_origin = X_train_transform.copy()
@@ -143,6 +146,7 @@ if __name__ == "__main__":
     y_test_origin = y_test_transformed.copy()
 
 
+    # split the training/test dataset
     if data_split == 'split':
         pass 
     elif data_split == 'merge':
@@ -159,30 +163,37 @@ if __name__ == "__main__":
     comp_start = time.time()
 
     fit_start = time.time()
-    clf.fit(X_train_transform,y_train_transformed)
+    if classifier_name != 'euclidean':
+        clf.fit(X_train_transform,y_train_transformed)
     fit_end = time.time()
 
     pred_start = time.time()
-    model_pred = clf.predict(X_test_transform)
 
-    # extract symbolic representation on testset
-    if repr_type == 'single':
-        test_repr = clf.predict_words_bps
-        test_repr = test_repr.reshape(len(test_repr), -1)
-        
-        test_dist_mat = symbol_vectorized(test_repr,test_repr)
+    # generate test representation for symbolic
+    if classifier_name != 'euclidean': 
+        model_pred = clf.predict(X_test_transform)
+
+        if repr_type == 'single':
+            test_repr = clf.predict_words_bps
+            test_repr = test_repr.reshape(len(test_repr), -1)
+            
+            test_dist_mat = symbol_vectorized(test_repr,test_repr)
+            pred_end = time.time()
+
+            print("nclusters: ", n_clusters)
+            comp_end = time.time()
+
+        elif repr_type == 'bop':
+            test_repr = clf.pred_histogram
+            test_repr = test_repr.reshape(len(test_repr), -1)
+            
+            test_dist_mat = symbol_vectorized(test_repr,test_repr)
+            pred_end = time.time()
+    else:
+        # generate representation for euclidean/kmeans (raw data)
+        test_repr = X_test_transform.copy() 
         pred_end = time.time()
-
-        print("nclusters: ", n_clusters)
         comp_end = time.time()
-
-    elif repr_type == 'bop':
-        test_repr = clf.pred_histogram
-        test_repr = test_repr.reshape(len(test_repr), -1)
-        
-        test_dist_mat = symbol_vectorized(test_repr,test_repr)
-        pred_end = time.time()
-
 
     print(f'Fit time: {(fit_end - fit_start):.4f}s')
     print(f'Pred time: {(pred_end - pred_start):.4f}s')
@@ -201,13 +212,13 @@ if __name__ == "__main__":
             if kmedoids_type == 'pam':
                 symb_clustering = kmedoids.pam(diss=test_dist_mat, medoids=n_clusters, max_iter=100, init='random', random_state=rand_itr)
                 comp_end = time.time()
-                y_pred_symb = symb_clustering.labels
+                y_pred = symb_clustering.labels
 
 
             elif kmedoids_type == 'fasterpam':
                 symb_clustering = kmedoids.fasterpam(diss=test_dist_mat, medoids=n_clusters, max_iter=100, init='random', random_state=rand_itr)
                 comp_end = time.time()
-                y_pred_symb = symb_clustering.labels
+                y_pred = symb_clustering.labels
 
         elif clust_model == 'hierarchical':
 
@@ -219,16 +230,24 @@ if __name__ == "__main__":
 
             symb_clustering = AgglomerativeClustering(n_clusters=n_clusters, linkage=linkage, metric='l1').fit(test_repr)
             comp_end = time.time()
-            y_pred_symb = symb_clustering.labels_
+            y_pred = symb_clustering.labels_
 
         elif clust_model == 'symb_kmeans':
             from sklearn.cluster import KMeans
-            symb_kmeans = KMeans(n_clusters=n_clusters, random_state=rand_itr, n_init="auto").fit(test_repr)
+            symb_kmeans = KMeans(n_clusters=n_clusters, 
+                                 random_state=rand_itr, 
+                                 n_init="auto").fit(test_repr)
             comp_end = time.time()
-            y_pred_symb = symb_kmeans.labels_
+            y_pred = symb_kmeans.labels_
+        elif clust_model == 'kmeans' and classifier_name == 'euclidean':
+            from sklearn.cluster import KMeans
+            kmeans_model = KMeans(n_clusters=n_clusters, 
+                                  random_state=rand_itr, 
+                                  n_init="auto").fit(test_repr)
+            comp_end = time.time()
+            y_pred = kmeans_model.labels_
 
-        
-        results = pd.concat([results, compute_clustering_metrics(y_test_transformed, y_pred_symb)], ignore_index=False, axis=0)
+        results = pd.concat([results, compute_clustering_metrics(y_test_transformed, y_pred)], ignore_index=False, axis=0)
 
     model_params = pd.DataFrame([model_kwargs])
     model_params['clust_model'] = clust_model

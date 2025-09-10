@@ -83,7 +83,7 @@ print("Map to readable symbols: \n", spartan_repr[:5])
 
 ### #2 Evaluation
 
-Here, we present code examples for four downstream tasks. Config examples can be find in `benchmark/configs`.
+Here, we present code examples for four downstream tasks. Config examples can be find in `benchmark/configs`. To reproduce the results from the paper, please refer to the `scripts/readme.md`.
 
 #### Task-I: 1NN Classification
 

@@ -21,6 +21,7 @@ from TSB_Symbolic.onennclassifier.sax_dr_classifier import SAXDRDictionaryClassi
 from TSB_Symbolic.onennclassifier.sax_vfd_classifier import SAXVFDDictionaryClassifier
 from TSB_Symbolic.onennclassifier.sfa_classifier import SFADictionaryClassifier
 from TSB_Symbolic.onennclassifier.spartan_classifier import SPARTANClassifier
+from TSB_Symbolic.onennclassifier.base_classifier import BaseClassifier
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -28,7 +29,7 @@ def parse_arguments():
     parser.add_argument("-p", "--problem", required=False, default="ArrowHead")  # see data_loader.regression_datasets
     parser.add_argument("-c", "--classifier", required=False, default="sax")  # see regressor_tools.all_models
     parser.add_argument("-g",'--config',required=False,default='')
-    parser.add_argument("-i", "--itr", required=False, default=13)
+    parser.add_argument("-i", "--itr", required=False, default=1)
     parser.add_argument("-n", "--norm", required=False, default="zscore")  # none, standard, minmax
     parser.add_argument("-s","--save_model",required=False, default=None)
     parser.add_argument("-r","--skip_repeat",required=False,default=True)
@@ -132,6 +133,9 @@ if __name__ == "__main__":
     elif classifier_name == 'spartan':
         model_kwargs['downsample'] = downsample_rate
         clf = SPARTANClassifier(**model_kwargs)
+    elif classifier_name == 'euclidean':
+        model_kwargs['metric'] = 'euclidean'
+        clf = BaseClassifier(**model_kwargs)
 
     print("[{}] Model Args: {}".format(module,model_kwargs))
 
@@ -161,10 +165,6 @@ if __name__ == "__main__":
             clf = SAXDRDictionaryClassifier(**model_kwargs)
         elif classifier_name =='sax_vfd':
             clf = SAXVFDDictionaryClassifier(**model_kwargs)
-        elif classifier_name =='asax':
-            clf = ASAXDictionaryClassifier(**model_kwargs)
-        elif classifier_name =='twa_sax':
-            clf = TWASAXDictionaryClassifier(**model_kwargs)
         elif classifier_name == 'sfa':
             if config is None:
                 clf = SFADictionaryClassifier(save_words=True)
@@ -175,6 +175,9 @@ if __name__ == "__main__":
             #     model_kwargs['downsample'] = downsample_rate
             model_kwargs['downsample'] = downsample_rate
             clf = SPARTANClassifier(**model_kwargs)
+        elif classifier_name == 'euclidean':
+            model_kwargs['metric'] = 'euclidean'
+            clf = BaseClassifier(**model_kwargs)
 
 
         comp_start = time.time()
@@ -197,14 +200,14 @@ if __name__ == "__main__":
         print(f'Fit time: {(fit_end - fit_start):.4f}s')
         print(f'Pred time: {(pred_end - pred_start):.4f}s')
 
-        avg_results = avg_results.mean().to_frame().T
-        model_params = pd.DataFrame([model_kwargs])
-        model_params['runtime'] = avg_runtime / repeat_num
+    avg_results = avg_results.mean().to_frame().T
+    model_params = pd.DataFrame([model_kwargs])
+    model_params['runtime'] = avg_runtime / repeat_num
 
-        final_results = pd.concat([avg_results,model_params],ignore_index=False,axis=1)
+    final_results = pd.concat([avg_results,model_params],ignore_index=False,axis=1)
 
-        print(final_results)
+    print(final_results)
 
-        filename = output_directory + 'classification_results.csv'
-        with open(filename, 'a') as f:
-            final_results.to_csv(f, mode='a', header=f.tell()==0,index=False)
+    filename = output_directory + 'classification_results.csv'
+    with open(filename, 'a') as f:
+        final_results.to_csv(f, mode='a', header=f.tell()==0,index=False)

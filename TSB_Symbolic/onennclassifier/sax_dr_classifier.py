@@ -1,6 +1,6 @@
 from ..symbolic.sax.sax_dr import SAXDR
-from ..util.distance import mindist,matching_distance,hist_euclidean_dist,pairwise_distance,pairwise_histogram_distance
-from ..util.distance_vectorized import symbol_vectorized, hamming_vectorized, euclidean_vectorized
+
+from ..util.distance_vectorized import symbol_vectorized
 import scipy.stats
 
 import sys

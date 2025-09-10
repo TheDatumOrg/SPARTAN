@@ -1,6 +1,6 @@
 from ..symbolic.sax.tfsax import TFSAX
-from ..util.distance import mindist,matching_distance,hist_euclidean_dist,pairwise_distance,pairwise_histogram_distance
-from ..util.distance_vectorized import symbol_vectorized, hamming_vectorized, euclidean_vectorized
+
+from ..util.distance_vectorized import symbol_vectorized
 
 import sys
 import numpy as np

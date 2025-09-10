@@ -6,8 +6,8 @@ import multiprocessing
 
 from numba import prange,njit
 
-from ..util.distance import mindist,matching_distance,hist_euclidean_dist,pairwise_distance,pairwise_histogram_distance
-from ..util.distance_vectorized import symbol_vectorized,hamming_vectorized,sax_mindist,mindist_minmax,euclidean_vectorized,boss_vectorized,cosine_similarity_vectorized,kl_divergence
+from ..util.distance import mindist
+from ..util.distance_vectorized import symbol_vectorized,mindist,euclidean_vectorized
 
 from TSB_Symbolic.symbolic.sfa.sfa_fast import SFAFast
 
@@ -248,7 +248,7 @@ class SFADictionaryClassifier:
             pred_X = np.squeeze(self.pred_word_indices,axis=1)
             train_X = np.squeeze(self.train_word_indices,axis=1)
             breakpoints = self.sfa.mindist_breakpoints
-            dist_mat = sax_mindist(pred_X,train_X,breakpoints) ** np.sqrt(2)
+            dist_mat = mindist(pred_X,train_X,breakpoints) ** np.sqrt(2)
 
         else:
             raise Exception(f"Sorry, the {self.metric} is not currently supported.")

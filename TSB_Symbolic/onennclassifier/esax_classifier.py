@@ -1,6 +1,6 @@
 from ..symbolic.sax.esax import ESAX
-from ..util.distance import mindist,matching_distance,hist_euclidean_dist,pairwise_distance,pairwise_histogram_distance
-from ..util.distance_vectorized import symbol_vectorized, hamming_vectorized
+from ..util.distance import pairwise_histogram_distance
+from ..util.distance_vectorized import symbol_vectorized
 
 import sys
 import numpy as np
@@ -52,10 +52,7 @@ class ESAXDictionaryClassifier():
 
         print(self.predict_words_bps.shape)
 
-        if self.metric in ['hist_euclidean']:
-            dist_mat = pairwise_histogram_distance(self.predict_hist,self.train_hist,symmetric=False,metric=self.metric)
-
-        elif self.metric in ['symbolic_l1']:
+        if self.metric in ['symbolic_l1']:
             pred_X = np.squeeze(self.predict_words_bps,axis=1)
             train_X = np.squeeze(self.train_words_bps,axis=1)
             dist_mat = symbol_vectorized(pred_X,train_X)
