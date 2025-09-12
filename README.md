@@ -51,7 +51,8 @@ pip install -r requirements.txt
 **Step 2**: Preparing the datasets for time-series analytical tasks:
 
 + Download [the UCR Archive](http://www.timeseriesclassification.com/aeon-toolkit/Archives/Univariate2018_ts.zip) for classification, clustering, and the tightness of lower bound (TLB) tasks.
-+ Download the [TSB-UAD Archive](https://github.com/TheDatumOrg/TSB-UAD) for time-series anomaly detection.
++ Download the [TSB-UAD Archive](https://www.thedatum.org/datasets/TSB-UAD-Public.zip) for time-series anomaly detection.
++ Download the [synthetic CBF dataset](https://drive.google.com/drive/folders/1enRCCpJrtHRZkYSsbq_mZEFro3hk9evX?usp=sharing) for scaling experiments.
 
 <h2 id="symb"> 🏄‍♂️ Dive into Symbolic Representation Benchmark Study </h2>
 
