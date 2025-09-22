@@ -410,24 +410,31 @@ class SPARTAN:
         if self.word_to_num is None:
             word_to_num = self.combination_words_DAA(self.alphabet_size)
             self.word_to_num = word_to_num
+            self.word_to_num_dict = {w:i for i,w in enumerate(self.word_to_num)} # optimize the look-up
 
-        # utilize sparse int matrix for memory efficiency
-        all_win_words = lil_matrix((n_instances, possible_words), dtype=np.int32)
+        row_idx = []
+        col_idx = []
+        data = []
 
-        # build histogram
-        for j in range(n_instances):
-            bag = bags[j]
-            # print(bag)
+        # Prepare for csr matrix 
+        for j, bag in enumerate(bags):
+            for key, v in bag.items():
+                n = self.word_to_num_dict[key]
+                row_idx.append(j)
+                col_idx.append(n)
+                data.append(v)
 
-            for key in bag.keys():
-                v = bag[key]
+        # Build CSR directly
+        all_win_words = csr_matrix(
+            (np.array(data, dtype=np.int32),
+            (np.array(row_idx, dtype=np.int32),
+            np.array(col_idx, dtype=np.int32))),
+            shape=(n_instances, possible_words),
+            dtype=np.int32
+        )
 
-                n = self.word_to_num.index(key)
-
-                all_win_words[j,n] = v
-                
         if self.histogram_dtype == "csr":
-            return all_win_words.tocsr()
+            return all_win_words
         elif self.histogram_dtype == "array":
             return all_win_words.toarray()
         else:
