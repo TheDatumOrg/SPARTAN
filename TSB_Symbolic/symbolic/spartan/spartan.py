@@ -21,7 +21,7 @@ class SPARTAN:
                  bit_budget = 8,
                  lamda=0.5,
                  build_histogram=False,
-                 histogram_dtype='array',
+                 histogram_dtype='csr',
                  downsample = 1.0,
                  pca_solver = 'auto'):
         
@@ -431,7 +431,7 @@ class SPARTAN:
         elif self.histogram_dtype == "array":
             return all_win_words.toarray()
         else:
-            raise ValueError(f"Found {self.histogram_dtype} type. Currently only support 'csr' or 'array'.")
+            raise ValueError(f"Invalid {self.histogram_dtype} type. Currently only support 'csr' or 'array'.")
 
 
     def dynamic_alphabet_allocation(self, total_bit, EV, lamda=0.5):
