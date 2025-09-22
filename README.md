@@ -58,6 +58,7 @@ pip install -r requirements.txt
 
 ### #1 Example Usage
 
+Case 1: Single Pattern (each time-series is transformed into one sequence of words).
 ```shell
 import numpy as np
 from TSB_Symbolic.symbolic import SPARTAN
@@ -68,19 +69,42 @@ data = np.random.rand(100,50)
 # initialize SPARTAN with alphabet_size=4 and word_length=8
 model = SPARTAN(
     alphabet_size=4,
-    word_length = 8
+    word_length = 8,
+    build_histogram=False # set False as default for memory efficiency
     )
 
-# fit and transform the data
+# fit and transform the data 
 spartan_repr = model.fit_transform(data) # shape: (100, 8)
 print("SPARTAN Transformed Data: \n", spartan_repr[:5]) 
-
-# map it to readable symbols (using 'abcd' as an example)
-mapping = {0: 'a', 1: 'b', 2: 'c', 3: 'd'}
-symbol_map = np.vectorize(lambda x: mapping[int(x)])
-spartan_repr = symbol_map(spartan_repr)
-print("Map to readable symbols: \n", spartan_repr[:5]) 
 ```
+
+Case 2: Bag of Patterns (each time-series is transformed into multiple sequences of words, using sliding window), which can future support histogram operations.
+
+```shell
+import numpy as np
+from TSB_Symbolic.symbolic import SPARTAN
+
+# random data
+data = np.random.rand(100,50)
+
+# initialize SPARTAN with alphabet_size=4, word_length=4, and window_size=10, 
+model = SPARTAN(
+    alphabet_size=4,
+    word_length = 4,
+    window_size = 10,
+    build_histogram=True,
+    histogram_dtype="csr" # output csr format for memory efficiency (choose from ['csr', 'array'])
+    )
+
+# fit and transform the data 
+spartan_repr = model.fit_transform(data) # shape: (100, 41, 4)
+spartan_hist = model.pred_histogram      # shape: (100, 256)
+print("SPARTAN Transformed Representation: shape of ", spartan_repr.shape) 
+print("SPARTAN Transformed Histogram: shape of ", spartan_hist.shape) 
+```
+
+
+
 
 ### #2 Evaluation
 

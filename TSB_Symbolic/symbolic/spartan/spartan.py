@@ -8,17 +8,20 @@ import numpy as np
 from itertools import product
 from sklearn.cluster import KMeans
 
+from scipy.sparse import lil_matrix, csr_matrix
+
 class SPARTAN:
     def __init__(self,
-                 alphabet_size=[8,4,4,2],
+                 alphabet_size=4,
                  window_size=0,
                  word_length=4,
                  binning_method='equi-depth',
                  remove_repeat_words = False,
-                 assignment_policy = 'DAA', # direct or DAA
-                 bit_budget = 16,
+                 assignment_policy = 'DAA',
+                 bit_budget = 8,
                  lamda=0.5,
-                 build_histogram=True,
+                 build_histogram=False,
+                 histogram_dtype='array',
                  downsample = 1.0,
                  pca_solver = 'auto'):
         
@@ -34,6 +37,7 @@ class SPARTAN:
         self.bit_budget = bit_budget
         self.lamda = lamda
         self.build_histogram = build_histogram
+        self.histogram_dtype = histogram_dtype.lower()
         self.downsample = downsample
         self.pca_solver = pca_solver
 
@@ -345,12 +349,14 @@ class SPARTAN:
         return bags
 
     def bag_to_hist(self,bags):
+        """
+        Generate histograms given the transformed words. DAA not upported. Equal alphabet allocation.
+        """
         n_instances = len(bags)
 
         word_length = self.word_length
 
         possible_words = self.alphabet_size[0] ** word_length
-        print("possible_words: ", possible_words)
         word_to_num = [np.base_repr(i,base=self.alphabet_size[0]) for i in range(possible_words)]
 
         word_to_num = ['0'*(word_length - len(word)) + word for word in word_to_num]
@@ -373,11 +379,7 @@ class SPARTAN:
 
     def combination_words_DAA(self, alphabet_sizes):
         """
-        Generate all possible words given the alphabet sizes for each letter and the word length.
-        
-        :param alphabet_sizes: List[int], List where each element specifies the number of choices for that letter position.
-        :param word_length: int, Length of the word to be generated.
-        :return: List[str], List of all possible words.
+        Generate all possible words given the alphabet sizes for each letter and the word length. DAA Supported.
         """
         # Create a list of ranges based on the alphabet sizes
         ranges = [range(size) for size in alphabet_sizes]
@@ -391,23 +393,28 @@ class SPARTAN:
         return all_words
     
     def bag_to_hist_DAA(self,bags):
+        """
+        Generate histograms given the transformed words. DAA Supported.
+        """
         n_instances = len(bags)
 
         word_length = self.word_length
 
+        # calculate the number of possible words
         if isinstance(self.alphabet_size, list):
             possible_words = int(np.prod(self.alphabet_size))
         else:
             possible_words = int(self.alphabet_size ** word_length)
 
+        # generate the mapping between words and index
         if self.word_to_num is None:
             word_to_num = self.combination_words_DAA(self.alphabet_size)
             self.word_to_num = word_to_num
 
-        all_win_words = np.zeros((n_instances,possible_words))
+        # utilize sparse int matrix for memory efficiency
+        all_win_words = lil_matrix((n_instances, possible_words), dtype=np.int32)
 
-        # print(word_to_num)
-
+        # build histogram
         for j in range(n_instances):
             bag = bags[j]
             # print(bag)
@@ -418,11 +425,19 @@ class SPARTAN:
                 n = self.word_to_num.index(key)
 
                 all_win_words[j,n] = v
+                
+        if self.histogram_dtype == "csr":
+            return all_win_words.tocsr()
+        elif self.histogram_dtype == "array":
+            return all_win_words.toarray()
+        else:
+            raise ValueError(f"Found {self.histogram_dtype} type. Currently only support 'csr' or 'array'.")
 
-        return all_win_words
 
     def dynamic_alphabet_allocation(self, total_bit, EV, lamda=0.5):
-
+        """
+        Dynamic Programming solution for DAA.
+        """
         def regularization_term(x, ev_value, avg_bit, lamda=0.5, pos=1.0):
             
             return -lamda * (x-avg_bit)**2 * ev_value
@@ -435,6 +450,10 @@ class SPARTAN:
         min_bit = 1
         max_bit = int(np.max(EV) * N)
         alloc = np.zeros_like(DP).astype(np.int32) + N # store the num of bits for each component
+
+        # special case (alphabet size=2)
+        if N == K:
+            return None, [1 for i in range(K)]
 
         # init
         for i in range(0, K+1):

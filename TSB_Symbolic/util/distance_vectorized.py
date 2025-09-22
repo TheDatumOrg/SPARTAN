@@ -1,5 +1,6 @@
 import numpy as np
 from numba import njit, prange
+from sklearn.metrics import pairwise_distances
 
 def symbol_vectorized(X,Y):
     dist = np.sum(np.abs(X[:,None,:] - Y[None,:,:]),axis=2)
@@ -8,12 +9,12 @@ def hamming_vectorized(X,Y):
     n_inst, word_length = X.shape
     dist = np.sum(X[:,None,:] != Y[None,:,:],axis=2) / word_length
     return dist
-# def euclidean_vectorized(X,Y):
-#     dist = np.sum(np.sqrt(((X[:,None,:] - Y[None,:,:])**2)),axis=2)
-#     return dist
-def euclidean_vectorized(X,Y):
-    dist = np.sqrt(np.sum(((X[:,None,:] - Y[None,:,:])**2),axis=2))
+
+def euclidean_vectorized(X, Y):
+    # support both numpy array and scipy sparse matrices
+    dist = pairwise_distances(X, Y, metric="euclidean")
     return dist
+
 
 def cosine_similarity_vectorized(X,Y):
     dist = 0
