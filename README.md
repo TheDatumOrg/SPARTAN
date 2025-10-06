@@ -7,7 +7,7 @@
 
 Main Recent Update:
 
-+ [Feb. 3, 2025] Paper accepted to ACM SIGMOD! The full paper can be found at [paper link]().
++ [Feb. 3, 2025] Paper accepted to ACM SIGMOD! The full paper can be found at [paper link](https://dl.acm.org/doi/10.1145/3725357).
 
 If you find our work helpful, please consider citing and giving a star :-)
 
